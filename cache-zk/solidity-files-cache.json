@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/thanhhoann/awesome_web/hackathon/web3/contracts/Contract.sol": {
-      "lastModificationDate": 1717926861010,
-      "contentHash": "fa3af481173067d2d417fd9e5f5f597c",
+      "lastModificationDate": 1718370441278,
+      "contentHash": "d8419993f9244904c6b1399d20809c74",
       "sourceName": "contracts/Contract.sol",
       "solcConfig": {
         "version": "0.8.17",
