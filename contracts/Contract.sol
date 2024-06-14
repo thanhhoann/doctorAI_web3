@@ -2,42 +2,61 @@
 pragma solidity ^0.8.9;
 
 contract DoctorAI {
-    address payable public doctorAI;
-    mapping(address => uint256) public donations;
-    address[] public donators;
 
-    event PaymentReceived(address indexed from, uint256 amount);
-    event DonationReceived(address indexed from, uint256 amount);
+  // store information about each donation.
+  struct Donation {
+    address donor; // Address of the person who donated.
+    uint256 amount; // Amount of cryptocurrency donated.
+  }
 
-    constructor(address payable _doctorAI) {
-        require(_doctorAI != address(0), "Invalid address");
-        doctorAI = _doctorAI;
-    }
+  address public doctorAI_address;
+  Donation[] public donations;
+  uint256 public totalDonations;
 
-    function pay() external payable {
-        require(msg.value > 0, "Must send ETH to pay");
-        doctorAI.transfer(msg.value);
-        emit PaymentReceived(msg.sender, msg.value);
-    }
+  // it's called when the contract is deployed
+  // set as the initial DoctorAI address
+  constructor(address _doctorAI_address) {
+    doctorAI_address = _doctorAI_address;
+  }
 
-    function donate() external payable {
-        require(msg.value > 0, "Must send ETH to donate");
-        if (donations[msg.sender] == 0) {
-            donators.push(msg.sender);
-        }
-        donations[msg.sender] += msg.value;
-        doctorAI.transfer(msg.value);
-        emit DonationReceived(msg.sender, msg.value);
-    }
+  // NOTE:
+  // msg.value : amount of crypto sent 
+  // msg.address : amount of donor's address
+  
+  function donate() public payable {
+    uint256 donationAmount = msg.value; 
 
-    function getDonators() external view returns (address[] memory) {
-        return donators;
-    }
+    donations.push(Donation(msg.sender, donationAmount));
 
-    function updateDoctorAI(address payable _newDoctorAI) external {
-        require(msg.sender == doctorAI, "Only the current project wallet can update the address");
-        require(_newDoctorAI != address(0), "Invalid new project wallet address");
-        doctorAI = _newDoctorAI;
-    }
+    totalDonations += donationAmount;
+
+    // send the donated amount to the DoctorAI address
+    //
+    // payable(address) : converts the address to a payable address for sending funds
+    //
+    // call{value: amount}("") : calls a (receive) function at the address 
+    // with the donation amount and an empty string as data
+    //
+    // returns a boolean indicating success (sent) and any additional data 
+    (bool sent,) = payable(doctorAI_address).call{value: donationAmount}("");
+
+    // checks if the transfer was successfull, or throws an error message
+    require(sent, "Failed to send donation to DoctorAI");
+  }
+
+  // "public" & "view" : because it doesn't modify the contract state
+  // returns a copy of the "donations" array
+  function viewDonations() public view returns (Donation[] memory) {
+    return donations;
+  }
+
+  function getTotalDonations() public view returns (uint256) {
+    return totalDonations;
+  }
+
+  // update the DoctorAI address
+  function updateDoctorAddress(address _newAddress) public {
+    doctorAI_address = _newAddress;
+  }
 }
 
